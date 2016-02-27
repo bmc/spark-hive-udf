@@ -65,8 +65,9 @@ First, fire up PySpark:
 $ pyspark --jars target/scala-2.10/hiveudf_2.10-0.0.1.jar
 ```
 
-At the PySpark prompt, enter the following. (The prompts are displayed.
-Don't type them, obviously.)
+At the PySpark prompt, enter the following. (I use IPython with PySpark,
+by setting environment variable `IPYTHON` to `1`. The IPython prompts are 
+displayed below. Obviously, you should not type them.)
 
 ```
 In [1]: from datetime import datetime
