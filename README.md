@@ -63,6 +63,8 @@ that you've packaged the code into `target/scala-2.10/hiveudf_2.10-0.0.1.jar`.
 These commands assume Spark local mode, but they should also work fine within
 a cluster manager like Spark Standalone or YARN.
 
+You can also use Hive UDFs from Scala, by the way.
+
 First, fire up PySpark:
 
 ```
