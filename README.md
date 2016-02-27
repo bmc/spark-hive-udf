@@ -118,9 +118,6 @@ The Scala code for the UDFs is relatively straightforward and easy to
 read. If you prefer to write your UDFs in Java, it shouldn't be that
 difficult for you write Java versions.
 
-## Maven
-
-
 
 [Hive User Defined Functions]: https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF
 [Apache Spark]: http://spark.apache.org
