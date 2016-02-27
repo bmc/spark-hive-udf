@@ -39,7 +39,7 @@ That command will download the dependencies (if they haven't already been
 downloaded), compile the code, run the unit tests, and create a jar file
 in `target/scala-2.10`.
 
-### Building Maven
+### Building with Maven
 
 Honestly, I'm not a big fan of Maven; I prefer SBT or Gradle. But, if you
 prefer Maven (or are simply required to use it for your project), you _can_
@@ -51,6 +51,10 @@ $ mvn package
 
 to build `target/hiveudf-0.0.1.jar`. Be sure to change the jar paths,
 below, if you use Maven to build the jar.
+
+**NOTE**: The `test` target currently doesn't invoke the ScalaTest unit
+tests, and I really don't like Maven enough to spend the time to figure
+out why.
 
 ## Running in Spark
 
