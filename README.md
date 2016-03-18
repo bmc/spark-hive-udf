@@ -4,8 +4,8 @@
 
 This project is just an example, containing several
 [Hive User Defined Functions][] (UDFs), for use in Apache Spark. It's
-intended to demonstrate how to build a Hive UDF in Scala and use it within
-[Apache Spark][].
+intended to demonstrate how to build a Hive UDF in Scala or Java and use it
+within [Apache Spark][].
 
 ## Why use a Hive UDF?
 
@@ -32,7 +32,7 @@ the `activator` script in the root directory. To build the jar file, use
 this command:
 
 ```
-$ ./activator package
+$ ./activator jar
 ```
 
 That command will download the dependencies (if they haven't already been
@@ -41,20 +41,9 @@ in `target/scala-2.10`.
 
 ### Building with Maven
 
-Honestly, I'm not a big fan of Maven; I prefer SBT or Gradle. But, if you
-prefer Maven (or are simply required to use it for your project), you _can_
-build this project with Maven. I've included a `pom.xml`. Just run:
-
-```
-$ mvn package
-```
-
-to build `target/hiveudf-0.0.1.jar`. Be sure to change the jar paths,
-below, if you use Maven to build the jar.
-
-**NOTE**: The `test` target currently doesn't invoke the ScalaTest unit
-tests, and I really don't like Maven enough to spend the time to figure
-out why.
+Honestly, I'm not a big fan of Maven. I had a Maven `pom.xml` file here, but
+it was too much of a pain to get working properly. Just use `activator`,
+above.
 
 ## Running in Spark
 
@@ -71,53 +60,53 @@ First, fire up PySpark:
 $ pyspark --jars target/scala-2.10/hiveudf_2.10-0.0.1.jar
 ```
 
-At the PySpark prompt, enter the following. (I use IPython with PySpark,
-by setting environment variable `IPYTHON` to `1`. The IPython prompts are 
-displayed below. Obviously, you should not type them.)
+At the PySpark prompt, enter the following. (If you're using IPython,
+`%paste` works best.)
 
 ```
-In [1]: from datetime import datetime
+from datetime import datetime
+from collections import namedtuple
+from decimal import Decimal
 
-In [2]: from collections import namedtuple
+Person = namedtuple('Person', ('first_name', 'last_name', 'birth_date', 'salary', 'children'))
 
-In [3]: Person = namedtuple('Person', ('first_name', 'last_name', 'birth_date', 'salary'))
+fmt = "%Y-%m-%d"
 
-In [4]: fmt = "%Y-%m-%d"
+people = [
+    Person('Joe', 'Smith', datetime.strptime("1993-10-20", fmt), 70000.0, 2l),
+    Person('Jenny', 'Harmon', datetime.strptime("1987-08-02", fmt), 94000.0, 1l)
+]
 
-In [5]: people = [
-   ...: Person('Joe', 'Smith', datetime.strptime("1993-10-20", fmt), 70000l),
-   ...: Person('Jenny', 'Harmon', datetime.strptime("1987-08-02", fmt), 94000l)
-   ...: ]
+df = sc.parallelize(people).toDF()
 
-In [6]: df = sc.parallelize(people).toDF()
+sqlContext.sql("CREATE TEMPORARY FUNCTION to_hex AS 'com.ardentex.spark.hiveudf.ToHex'")
+sqlContext.sql("CREATE TEMPORARY FUNCTION datestring AS 'com.ardentex.spark.hiveudf.FormatTimestamp'")
+sqlContext.sql("CREATE TEMPORARY FUNCTION currency AS 'com.ardentex.spark.hiveudf.FormatCurrency'")
 
-In [7]: sqlContext.sql("CREATE TEMPORARY FUNCTION to_hex AS 'com.ardentex.spark.hiveudf.ToHex'")
-
-In [8]: sqlContext.sql("CREATE TEMPORARY FUNCTION datestring AS 'com.ardentex.spark.hiveudf.FormatTimestamp'")
-
-In [9]: df.registerTempTable("people")
-
-In [10]: df2 = sqlContext.sql("SELECT first_name, last_name, datestring(birth_date, 'MMMM dd, yyyy') as birth_date2, to_hex(salary) as hex_salary FROM people")
+df.registerTempTable("people")
+df2 = sqlContext.sql("SELECT first_name, last_name, datestring(birth_date, 'MMMM dd, yyyy') as birth_date2, currency(salary, 'en_US') as pr_salary, to_hex(children) as hex_children FROM people")
 ```
 
 Then, take a look at the second DataFrame:
 
 ```
-In [11]: df2.show()
-+----------+---------+----------------+----------+
-|first_name|last_name|     birth_date2|hex_salary|
-+----------+---------+----------------+----------+
-|       Joe|    Smith|October 20, 1993|   0x11170|
-|     Jenny|   Harmon| August 02, 1987|   0x16f30|
-+----------+---------+----------------+----------+
+df2.show()
+
++----------+---------+----------------+----------+------------+
+|first_name|last_name|     birth_date2| pr_salary|hex_children|
++----------+---------+----------------+----------+------------+
+|       Joe|    Smith|October 20, 1993|$70,000.00|         0x2|
+|     Jenny|   Harmon| August 02, 1987|$94,000.00|         0x1|
++----------+---------+----------------+----------+------------+
 ```
 
-## Converting to Java
+## "Why did you write these things in Scala?"
 
-The Scala code for the UDFs is relatively straightforward and easy to
-read. If you prefer to write your UDFs in Java, it shouldn't be that
-difficult for you write Java versions.
-
+Because, after writing Scala for the last 7 years, I find Java annoying. But,
+if you really want to make your ugly Hive UDFs uglier by writing them in Java,
+take a look at the `FormatCurrency` UDF. I overcame my distaste and wrote that
+one in Java. The others are in Scala and, really, they're not hard to translate
+to Java, if you really like writing and reading a lot more code necessary.
 
 [Hive User Defined Functions]: https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF
 [Apache Spark]: http://spark.apache.org

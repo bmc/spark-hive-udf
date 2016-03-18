@@ -14,3 +14,5 @@ libraryDependencies ++= Seq(
 // Without this repo, you might get a failure trying to resolve transitive
 // dependency org.pentaho:pentaho-aggdesigner-algorithm:5.1.5-jhyde
 resolvers += "conjars" at "http://conjars.org/repo"
+
+addCommandAlias("jar", ";test;package")
