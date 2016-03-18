@@ -1,7 +1,7 @@
 package com.ardentex.spark.hiveudf
 
 import org.apache.hadoop.hive.ql.exec.UDF
-import org.apache.hadoop.io._
+import org.apache.hadoop.io.LongWritable
 
 /** This UDF takes a long integer and converts it to a hexadecimal string.
   */
