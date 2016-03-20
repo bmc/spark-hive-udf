@@ -43,7 +43,7 @@ in `target/scala-2.10`.
 
 Honestly, I'm not a big fan of Maven. I had a Maven `pom.xml` file here, but
 I got tired of maintaining an annoying XML Maven build file, when I'm already
-maintaining an SBT build file.  Just use `activator`, above.
+maintaining an SBT build file.  Just use `activator`, as described above.
 
 ## Running in Spark
 
