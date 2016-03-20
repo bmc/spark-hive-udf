@@ -106,7 +106,7 @@ Because, after writing Scala for the last 7 years, I find Java annoying. But,
 if you really want to make your ugly Hive UDFs uglier by writing them in Java,
 take a look at the `FormatCurrency` UDF. I overcame my distaste and wrote that
 one in Java. The others are in Scala and, really, they're not hard to translate
-to Java, if you really like writing and reading a lot more code necessary.
+to Java, if you really like writing and reading a lot more code than necessary.
 
 [Hive User Defined Functions]: https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF
 [Apache Spark]: http://spark.apache.org
