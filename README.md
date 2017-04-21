@@ -113,7 +113,7 @@ df2.show()
 
 ## Running in spark-shell (Scala)
 
-First, fire up PySpark:
+First, fire up the Spark shell:
 
 ```
 $ spark-shell --jars /tmp/spark-hive-udf_2.11-0.1.0.jar
