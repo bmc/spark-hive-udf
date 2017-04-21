@@ -48,7 +48,7 @@ Honestly, I'm not a big fan of Maven. I had a Maven `pom.xml` file here, but
 I got tired of maintaining two build files. Just use `activator`, as described 
 above.
 
-## Running in Spark
+## Running in PySpark
 
 The following Python code demonstrates the UDFs in this package and assumes
 that you've packaged the code into `target/scala-2.11/spark-hive-udf_2.11-0.1.0.jar`
@@ -70,7 +70,7 @@ At the PySpark prompt, enter the following. (If you're using IPython,
 
 **NOTE**: The following code assumes Spark 2.x.
 
-```
+```python
 from datetime import datetime
 from collections import namedtuple
 from decimal import Decimal
@@ -95,7 +95,7 @@ spark.sql("CREATE TEMPORARY FUNCTION currency AS 'com.ardentex.spark.hiveudf.For
 # Replace createOrReplaceTempView with registerTempTable if you're using
 # Spark 1.x
 df.createOrReplaceTempView("people")
-df2 = spark.sql("SELECT first_name, last_name, datestring(birth_date, 'MMMM dd, yyyy') as birth_date2, currency(salary, 'en_US') as pr_salary, to_hex(children) as hex_children FROM people")
+df2 = spark.sql("SELECT first_name, last_name, datestring(birth_date, 'MMMM dd, yyyy') as birth_date, currency(salary, 'en_US') as salary, to_hex(children) as hex_children FROM people")
 ```
 
 Then, take a look at the second DataFrame:
@@ -104,11 +104,65 @@ Then, take a look at the second DataFrame:
 df2.show()
 
 +----------+---------+----------------+----------+------------+
-|first_name|last_name|     birth_date2| pr_salary|hex_children|
+|first_name|last_name|      birth_date|    salary|hex_children|
 +----------+---------+----------------+----------+------------+
 |       Joe|    Smith|October 20, 1993|$70,000.00|         0x2|
 |     Jenny|   Harmon| August 02, 1987|$94,000.00|         0x1|
 +----------+---------+----------------+----------+------------+
+```
+
+## Running in spark-shell (Scala)
+
+First, fire up PySpark:
+
+```
+$ spark-shell --jars /tmp/spark-hive-udf_2.11-0.1.0.jar
+```
+
+At the Scala REPL prompt, type `:paste`, then copy and paste the following
+code followed by a Ctrl-D.
+
+**NOTE**: The following code assumes Spark 2.x.
+
+```scala
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Date
+
+case class Person(firstName: String, lastName: String, birthDate: Timestamp, salary: Double, children: Int)
+
+val fmt = new SimpleDateFormat("yyyy-MM-dd")
+
+val people = Array(
+    Person("Joe", "Smith", new Timestamp(fmt.parse("1993-10-20").getTime), 70000.0, 2),
+    Person("Jenny", "Harmon", new Timestamp(fmt.parse("1987-08-02").getTime), 94000.0, 1)
+)
+
+// Replace spark.sparkContext with sc if you're using Spark 1.x.
+val df = spark.createDataFrame(spark.sparkContext.parallelize(people))
+
+// Replace spark with sqlContext if  you're using Spark 1.x.
+spark.sql("CREATE TEMPORARY FUNCTION toHex AS 'com.ardentex.spark.hiveudf.ToHex'")
+spark.sql("CREATE TEMPORARY FUNCTION datestring AS 'com.ardentex.spark.hiveudf.FormatTimestamp'")
+spark.sql("CREATE TEMPORARY FUNCTION currency AS 'com.ardentex.spark.hiveudf.FormatCurrency'")
+
+// Replace createOrReplaceTempView with registerTempTable if you're using
+// Spark 1.x
+df.createOrReplaceTempView("people")
+val df2 = spark.sql("SELECT firstName, lastName, datestring(birthDate, 'MMMM dd, yyyy') as birthDate, currency(salary, 'en_US') as salary, toHex(children) as hexChildren FROM people")
+```
+
+Then, take a look at the second DataFrame:
+
+```
+df2.show()
+
++---------+--------+----------------+----------+-----------+
+|firstName|lastName|       birthDate|    salary|hexChildren|
++---------+--------+----------------+----------+-----------+
+|      Joe|   Smith|October 20, 1993|$70,000.00|        0x2|
+|    Jenny|  Harmon| August 02, 1987|$94,000.00|        0x1|
++---------+--------+----------------+----------+-----------+
 ```
 
 ## "Why did you write these things in Scala?"
