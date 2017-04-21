@@ -7,15 +7,13 @@ import org.apache.hadoop.io.LongWritable
   */
 class ToHex extends UDF {
 
-  def evaluate(t: LongWritable): String = {
-    if (t == null) {
-      ""
-    }
-
-    else {
-      // Use Scala string interpolation. It's the easiest way, and it's
-      // type-safe, unlike String.format().
-      f"0x${t.get}%x"
-    }
+  def evaluate(n: LongWritable): String = {
+    Option(n)
+      .map { num =>
+        // Use Scala string interpolation. It's the easiest way, and it's
+        // type-safe, unlike String.format().
+        f"0x${num.get}%x"
+      }
+      .getOrElse("")
   }
 }
