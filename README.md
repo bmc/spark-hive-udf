@@ -28,22 +28,25 @@ You can't call it as a function from the DataFrame API.
 ## Building
 
 This project builds with [SBT][], but you don't have to download SBT. Just use
-the `activator` script in the root directory. To build the jar file, use
+the `activator` script in the `bin` subdirectory. To build the jar file, use
 this command:
 
 ```
-$ ./activator jar
+$ bin/activator +jar
 ```
 
 That command will download the dependencies (if they haven't already been
-downloaded), compile the code, run the unit tests, and create a jar file
-in `target/scala-2.10`.
+downloaded), compile the code, run the unit tests, and create jar files for
+both Scala 2.10 and Scala 2.11. Those jars will be:
+
+* Scala 2.10: `target/scala-2.10/spark-hive-udf_2.10-0.1.0.jar`
+* Scala 2.11: `target/scala-2.11/spark-hive-udf_2.11-0.1.0.jar`
 
 ### Building with Maven
 
 Honestly, I'm not a big fan of Maven. I had a Maven `pom.xml` file here, but
-I got tired of maintaining an annoying XML Maven build file, when I'm already
-maintaining an SBT build file.  Just use `activator`, as described above.
+I got tired of maintaining two build files. Just use `activator`, as described 
+above.
 
 ## Running in Spark
 
@@ -57,11 +60,13 @@ You can also use Hive UDFs from Scala, by the way.
 First, fire up PySpark:
 
 ```
-$ pyspark --jars target/scala-2.10/hiveudf_2.10-0.0.1.jar
+$ pyspark --jars target/scala-2.11/spark-hive-udf-0.1.0.jar
 ```
 
 At the PySpark prompt, enter the following. (If you're using IPython,
 `%paste` works best.)
+
+**NOTE**: The following code assumes Spark 2.x.
 
 ```
 from datetime import datetime
@@ -73,18 +78,22 @@ Person = namedtuple('Person', ('first_name', 'last_name', 'birth_date', 'salary'
 fmt = "%Y-%m-%d"
 
 people = [
-    Person('Joe', 'Smith', datetime.strptime("1993-10-20", fmt), 70000.0, 2l),
-    Person('Jenny', 'Harmon', datetime.strptime("1987-08-02", fmt), 94000.0, 1l)
+    Person('Joe', 'Smith', datetime.strptime("1993-10-20", fmt), 70000.0, 2),
+    Person('Jenny', 'Harmon', datetime.strptime("1987-08-02", fmt), 94000.0, 1)
 ]
 
-df = sc.parallelize(people).toDF()
+# Replace spark.sparkContext with sc if you're using Spark 1.x.
+df = spark.sparkContext.parallelize(people).toDF()
 
-sqlContext.sql("CREATE TEMPORARY FUNCTION to_hex AS 'com.ardentex.spark.hiveudf.ToHex'")
-sqlContext.sql("CREATE TEMPORARY FUNCTION datestring AS 'com.ardentex.spark.hiveudf.FormatTimestamp'")
-sqlContext.sql("CREATE TEMPORARY FUNCTION currency AS 'com.ardentex.spark.hiveudf.FormatCurrency'")
+# Replace spark with sqlContext if  you're using Spark 1.x.
+spark.sql("CREATE TEMPORARY FUNCTION to_hex AS 'com.ardentex.spark.hiveudf.ToHex'")
+spark.sql("CREATE TEMPORARY FUNCTION datestring AS 'com.ardentex.spark.hiveudf.FormatTimestamp'")
+spark.sql("CREATE TEMPORARY FUNCTION currency AS 'com.ardentex.spark.hiveudf.FormatCurrency'")
 
-df.registerTempTable("people")
-df2 = sqlContext.sql("SELECT first_name, last_name, datestring(birth_date, 'MMMM dd, yyyy') as birth_date2, currency(salary, 'en_US') as pr_salary, to_hex(children) as hex_children FROM people")
+# Replace createOrReplaceTempView with registerTempTable if you're using
+# Spark 1.x
+df.createOrReplaceTempView("people")
+df2 = spark.sql("SELECT first_name, last_name, datestring(birth_date, 'MMMM dd, yyyy') as birth_date2, currency(salary, 'en_US') as pr_salary, to_hex(children) as hex_children FROM people")
 ```
 
 Then, take a look at the second DataFrame:
