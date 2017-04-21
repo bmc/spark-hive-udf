@@ -51,16 +51,18 @@ above.
 ## Running in Spark
 
 The following Python code demonstrates the UDFs in this package and assumes
-that you've packaged the code into `target/scala-2.10/hiveudf_2.10-0.0.1.jar`.
+that you've packaged the code into `target/scala-2.11/spark-hive-udf_2.11-0.1.0.jar`
+and copied that jar to `/tmp`.
+
 These commands assume Spark local mode, but they should also work fine within
 a cluster manager like Spark Standalone or YARN.
 
-You can also use Hive UDFs from Scala, by the way.
+(You can also use Hive UDFs from Scala, by the way.)
 
 First, fire up PySpark:
 
 ```
-$ pyspark --jars target/scala-2.11/spark-hive-udf-0.1.0.jar
+$ pyspark --jars /tmp/spark-hive-udf_2.11-0.1.0.jar
 ```
 
 At the PySpark prompt, enter the following. (If you're using IPython,
