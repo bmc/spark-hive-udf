@@ -25,6 +25,9 @@ in the Executor JVM, _even if the DataFrame logic is in Python_.
 There's really only one drawback: a Hive UDF _must_ be invoked via SQL.
 You can't call it as a function from the DataFrame API.
 
+**NOTE** It is also possible to do something similar, using native Spark
+UDFs. See <https://stackoverflow.com/questions/33233737/spark-how-to-map-python-with-scala-or-java-user-defined-functions> for a discussion.
+
 ## Building
 
 This project builds with [SBT][], but you don't have to download SBT. Just use
